@@ -46,6 +46,8 @@ from voltha.protos.bbf_fiber_gemport_body_pb2 import GemportsConfigData
 from common.frameio.frameio import hexify
 from voltha.extensions.omci.omci import *
 
+import time
+
 _ = third_party
 log = structlog.get_logger()
 
@@ -115,10 +117,18 @@ class BroadcomOnuAdapter(object):
         raise NotImplementedError()
 
     def disable_device(self, device):
-        raise NotImplementedError()
+        log.info('disable-device', device_id=device.id)
+        if device.id in self.devices_handlers:
+            handler = self.devices_handlers[device.id]
+            if handler is not None:
+                handler.disable(device)
 
     def reenable_device(self, device):
-        raise NotImplementedError()
+        log.info('reenable-device', device_id=device.id)
+        if device.id in self.devices_handlers:
+            handler = self.devices_handlers[device.id]
+            if handler is not None:
+                handler.reenable(device)
 
     def reboot_device(self, device):
         raise NotImplementedError()
@@ -287,6 +297,7 @@ class BroadcomOnuHandler(object):
         self.event_messages = DeferredQueue()
         self.proxy_address = None
         self.tx_id = 0
+        self.vids = []
 
         # Need to query ONU for number of supported uni ports
         # For now, temporarily set number of ports to 1 - port #2
@@ -305,6 +316,7 @@ class BroadcomOnuHandler(object):
         if event_msg['event'] == 'activation-completed':
 
             if event_msg['event_data']['activation_successful'] == True:
+                device = self.adapter_agent.get_device(self.device_id)
                 for uni in self.uni_ports:
                     port_no = self.proxy_address.channel_id + uni
                     reactor.callLater(1,
@@ -313,19 +325,22 @@ class BroadcomOnuHandler(object):
                       self.proxy_address.onu_session_id,
                       port_no)
 
-                device = self.adapter_agent.get_device(self.device_id)
-                device.oper_status = OperStatus.ACTIVE
-                self.adapter_agent.update_device(device)
-
             else:
                 device = self.adapter_agent.get_device(self.device_id)
                 device.oper_status = OperStatus.FAILED
                 self.adapter_agent.update_device(device)
 
-        elif event_msg['event'] == 'deactivation-completed':
-            device = self.adapter_agent.get_device(self.device_id)
-            device.oper_status = OperStatus.DISCOVERED
-            self.adapter_agent.update_device(device)
+        elif (event_msg['event'] == 'deactivation-completed'):
+                device = self.adapter_agent.get_device(self.device_id)
+                device.oper_status = OperStatus.DISCOVERED
+                self.adapter_agent.update_device(device)
+
+        elif (event_msg['event'] == 'deactivate-onu'):
+                device = self.adapter_agent.get_device(self.device_id)
+                device.connect_status = ConnectStatus.UNREACHABLE
+                device.oper_status = OperStatus.DISCOVERED
+                self.adapter_agent.update_device(device)
+                self.delete_logical_port(device)
 
         elif event_msg['event'] == 'ranging-completed':
 
@@ -342,6 +357,33 @@ class BroadcomOnuHandler(object):
         # Handle next event
         reactor.callLater(0, self.handle_onu_events)
 
+    def disable(self, device):
+        device = self.adapter_agent.get_device(self.device_id)
+        device.admin_state = AdminState.DISABLED
+        self.adapter_agent.update_device(device)
+        event_data = dict()
+        event_data['serial_number'] = device.serial_number
+        msg = {'proxy_address': device.proxy_address,
+              'event': 'onu-deactivation', 'event_data': event_data}
+        self.adapter_agent.publish_inter_adapter_message(device.proxy_address.device_id,
+                                                         msg)
+        self.log.info('disabled', device_id=device.id)
+
+    def reenable(self, device):
+        # register for proxied messages right away
+        self.proxy_address = device.proxy_address
+        self.adapter_agent.register_for_proxied_messages(device.proxy_address)
+        device.admin_state = AdminState.ENABLED
+        device.connect_status = ConnectStatus.REACHABLE
+        device.oper_status = OperStatus.ACTIVE
+        self.adapter_agent.update_device(device)
+        event_data = dict()
+        event_data['serial_number'] = device.serial_number
+        msg = {'proxy_address': device.proxy_address,
+              'event': 'onu-activation', 'event_data': event_data}
+        self.adapter_agent.publish_inter_adapter_message(device.proxy_address.device_id,
+                                                         msg)
+        self.log.info('reenabled', device_id=device.id)
 
     def activate(self, device):
         self.log.info('activating')
@@ -406,6 +448,33 @@ class BroadcomOnuHandler(object):
 
         log.info('reconciling-broadcom-onu-device-ends')
 
+    @inlineCallbacks
+    def add_vlan(self, _set_vlan_vid):
+        # allow priority tagged packets
+        # Set AR - ExtendedVlanTaggingOperationConfigData
+        #          514 - RxVlanTaggingOperationTable - add VLAN <cvid> to priority tagged pkts - c-vid
+
+        self.send_delete_vlan_tagging_filter_data(0x2102)
+        yield self.wait_for_response()
+
+        #self.send_set_vlan_tagging_filter_data(0x2102, _set_vlan_vid)
+        self.send_create_vlan_tagging_filter_data(0x2102, _set_vlan_vid)
+        yield self.wait_for_response()
+
+        self.send_set_extended_vlan_tagging_operation_vlan_configuration_data_untagged(0x202, 0x1000, _set_vlan_vid)
+        yield self.wait_for_response()
+
+        self.send_set_extended_vlan_tagging_operation_vlan_configuration_data_single_tag(0x202, 8, 0, 0,
+										     1, 8, _set_vlan_vid)
+        yield self.wait_for_response()
+
+        # Set AR - ExtendedVlanTaggingOperationConfigData
+        #          514 - RxVlanTaggingOperationTable - add VLAN <cvid> to priority tagged pkts - c-vid
+        '''
+        self.send_set_extended_vlan_tagging_operation_vlan_configuration_data_single_tag(0x205, 8, 0, 0,
+										     1, 8, _set_vlan_vid)
+        yield self.wait_for_response()
+        '''
 
     @inlineCallbacks
     def update_flow_table(self, device, flows):
@@ -543,31 +612,9 @@ class BroadcomOnuHandler(object):
                 # All flows created from ONU adapter should be OMCI based
                 #
                 if _vlan_vid == 0 and _set_vlan_vid != None and _set_vlan_vid != 0:
-                    # allow priority tagged packets
-                    # Set AR - ExtendedVlanTaggingOperationConfigData
-                    #          514 - RxVlanTaggingOperationTable - add VLAN <cvid> to priority tagged pkts - c-vid
-
-                    self.send_delete_vlan_tagging_filter_data(0x2102)
-                    yield self.wait_for_response()
-
-                    #self.send_set_vlan_tagging_filter_data(0x2102, _set_vlan_vid)
-                    self.send_create_vlan_tagging_filter_data(0x2102, _set_vlan_vid)
-                    yield self.wait_for_response()
-
-                    self.send_set_extended_vlan_tagging_operation_vlan_configuration_data_untagged(0x202, 0x1000, _set_vlan_vid)
-                    yield self.wait_for_response()
-
-                    self.send_set_extended_vlan_tagging_operation_vlan_configuration_data_single_tag(0x202, 8, 0, 0,
-                                                                                                     1, 8, _set_vlan_vid)
-                    yield self.wait_for_response()
-
-                    # Set AR - ExtendedVlanTaggingOperationConfigData
-                    #          514 - RxVlanTaggingOperationTable - add VLAN <cvid> to priority tagged pkts - c-vid
-                    '''
-                    self.send_set_extended_vlan_tagging_operation_vlan_configuration_data_single_tag(0x205, 8, 0, 0,
-                                                                                                     1, 8, _set_vlan_vid)
-                    yield self.wait_for_response()
-                    '''
+                    self.add_vlan(_set_vlan_vid)
+                    self.vids.append(_set_vlan_vid)
+                    self.log.info('cached-vids', vids=self.vids)
 
             except Exception as e:
                 log.exception('failed-to-install-flow', e=e, flow=flow)
@@ -1274,10 +1321,10 @@ class BroadcomOnuHandler(object):
         self.send_create_vlan_tagging_filter_data(0x2102, cvid)
         yield self.wait_for_response()
 
-       # Set AR - ExtendedVlanTaggingOperationConfigData
+        # Set AR - ExtendedVlanTaggingOperationConfigData
         #          514 - RxVlanTaggingOperationTable - add VLAN <cvid> to priority tagged pkts - c-vid
-        #self.send_set_extended_vlan_tagging_operation_vlan_configuration_data_single_tag(0x202, 8, 0, 0, 1, 8, cvid)
-        #yield self.wait_for_response()
+        self.send_set_extended_vlan_tagging_operation_vlan_configuration_data_single_tag(0x202, 8, 0, 0, 1, 8, cvid)
+        yield self.wait_for_response()
 
         # Set AR - ExtendedVlanTaggingOperationConfigData
         #          514 - RxVlanTaggingOperationTable - add VLAN <cvid> to untagged pkts - c-vid
@@ -1352,6 +1399,11 @@ class BroadcomOnuHandler(object):
         self.send_create_mac_bridge_port_configuration_data(0x205, 0x201, 5, 1, 0x105)
         yield self.wait_for_response()
         '''
+        device = self.adapter_agent.get_device(self.device_id)
+        device.admin_state = AdminState.ENABLED
+        device.connect_status = ConnectStatus.REACHABLE
+        device.oper_status = OperStatus.ACTIVE
+        self.adapter_agent.update_device(device)
 
     def add_uni_port(self, device, parent_logical_device_id,
                      name, parent_port_num=None):
@@ -1402,39 +1454,42 @@ class BroadcomOnuHandler(object):
         if isinstance(data, VEnetConfig):
             parent_port_num = None
             onu_device = self.adapter_agent.get_device(self.device_id)
-            ports = self.adapter_agent.get_ports(onu_device.parent_id, Port.ETHERNET_UNI)
-            parent_port_num = None
-            for port in ports:
-                if port.label == data.interface.name:
-                    parent_port_num = port.port_no
-                    break
+            if (onu_device.oper_status == OperStatus.ACTIVE):
+                ports = self.adapter_agent.get_ports(onu_device.parent_id, Port.ETHERNET_UNI)
+                parent_port_num = None
+                for port in ports:
+                    if port.label == data.interface.name:
+                        parent_port_num = port.port_no
+                        break
 
-            parent_device = self.adapter_agent.get_device(onu_device.parent_id)
-            logical_device_id = parent_device.parent_id
-            assert logical_device_id
-            self.add_uni_port(onu_device, logical_device_id, 
-                              data.name, parent_port_num)
+                parent_device = self.adapter_agent.get_device(onu_device.parent_id)
+                logical_device_id = parent_device.parent_id
+                assert logical_device_id
+                self.add_uni_port(onu_device, logical_device_id,
+                                  data.name, parent_port_num)
 
-            if parent_port_num is None:
-                self.log.error("matching-parent-uni-port-num-not-found")
-                return
+                if parent_port_num is None:
+                    self.log.error("matching-parent-uni-port-num-not-found")
+                    return
 
-            onu_ports = self.adapter_agent.get_ports(self.device_id, Port.PON_ONU)
-            if onu_ports:
-                # To-Do :
-                # Assumed only one PON port and UNI port per ONU.
-                pon_port = onu_ports[0]
+                onu_ports = self.adapter_agent.get_ports(self.device_id, Port.PON_ONU)
+                if onu_ports:
+                    # To-Do :
+                    # Assumed only one PON port and UNI port per ONU.
+                    pon_port = onu_ports[0]
+                else:
+                    self.log.error("No-Pon-port-configured-yet")
+                    return
+
+                self.adapter_agent.delete_port_reference_from_parent(self.device_id,
+                                                                     pon_port)
+
+                pon_port.peers[0].device_id = onu_device.parent_id
+                pon_port.peers[0].port_no = parent_port_num
+                self.adapter_agent.add_port_reference_to_parent(self.device_id,
+                                                                pon_port)
             else:
-                self.log.error("No-Pon-port-configured-yet")
-                return
-
-            self.adapter_agent.delete_port_reference_from_parent(self.device_id,
-                                                                 pon_port)
-
-            pon_port.peers[0].device_id = onu_device.parent_id
-            pon_port.peers[0].port_no = parent_port_num
-            self.adapter_agent.add_port_reference_to_parent(self.device_id,
-                                                            pon_port)
+                self.log.error("ONU is not yet activated")
         else:
             self.log.info('Not handled Yet')
         return
@@ -1449,6 +1504,10 @@ class BroadcomOnuHandler(object):
 
     @inlineCallbacks
     def create_gemport(self, data):
+        onu_device = self.adapter_agent.get_device(self.device_id)
+        if (onu_device.oper_status != OperStatus.ACTIVE):
+           self.log.error("ONU is not yet activated")
+           return
         log.info('create-gemport')
 	gem_port= GemportsConfigData()
 	gem_port.CopyFrom(data)
@@ -1476,9 +1535,20 @@ class BroadcomOnuHandler(object):
                                                        gem_port.gemport_id)
             yield self.wait_for_response()
 
+            if self.vids:
+                    reactor.callLater(5, self.add_cached_vlans)
+
+    @inlineCallbacks
+    def add_cached_vlans(self):
+        for vid in self.vids:
+            self.add_vlan(vid)
 
     @inlineCallbacks
     def create_tcont(self, tcont_data, traffic_descriptor_data):
+        onu_device = self.adapter_agent.get_device(self.device_id)
+        if (onu_device.oper_status != OperStatus.ACTIVE):
+           self.log.error("ONU is not yet activated")
+           return
         log.info('create-tcont')
 	tcont = TcontsConfigData()
         tcont.CopyFrom(tcont_data)
@@ -1491,3 +1561,37 @@ class BroadcomOnuHandler(object):
 
     def create_multicast_gemport(self, data):
         self.log.info('Send relevant OMCI message')
+
+
+    def delete_logical_port(self, onu_device):
+        self.log.info('disabling', device_id=self.device_id)
+
+        # Get the latest device reference
+        onu_device = self.adapter_agent.get_device(self.device_id)
+
+        # Disable all ports on that device
+        self.adapter_agent.disable_all_ports(self.device_id)
+
+        # Remove the uni logical port from the OLT, if still present
+        parent_device = self.adapter_agent.get_device(onu_device.parent_id)
+        assert parent_device
+        logical_device_id = parent_device.parent_id
+        assert logical_device_id
+        ports = self.adapter_agent.get_ports(onu_device.id, Port.ETHERNET_UNI)
+        port_id = 'uni-{}'.format(ports[0].port_no)
+        try:
+            lgcl_port = self.adapter_agent.get_logical_port(logical_device_id, port_id);
+            self.adapter_agent.delete_logical_port(logical_device_id, lgcl_port)
+        except KeyError:
+            self.log.info('logical-port-not-found', device_id=self.device_id,
+                          portid=port_id)
+        # Remove pon port from parent
+        if ports:
+            # To-Do :
+            # Assumed only one PON port and UNI port per ONU.
+            pon_port = ports[0]
+        else:
+            self.log.error("No-Pon-port-configured-yet")
+            return
+        self.adapter_agent.delete_port_reference_from_parent(self.device_id,
+                                                             pon_port)

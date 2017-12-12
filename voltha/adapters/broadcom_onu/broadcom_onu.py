@@ -319,15 +319,13 @@ class BroadcomOnuHandler(object):
                 device = self.adapter_agent.get_device(self.device_id)
                 for uni in self.uni_ports:
                     port_no = self.proxy_address.channel_id + uni
-                    reactor.callLater(1,
-                      self.message_exchange,
-                      self.proxy_address.onu_id,
-                      self.proxy_address.onu_session_id,
-                      port_no)
-
-            else:
+                    yield self.message_exchange(
+                        self.proxy_address.onu_id,
+                        self.proxy_address.onu_session_id,
+                        port_no)
                 device = self.adapter_agent.get_device(self.device_id)
-                device.oper_status = OperStatus.FAILED
+                device.connect_status = ConnectStatus.REACHABLE
+                device.oper_status = OperStatus.ACTIVE
                 self.adapter_agent.update_device(device)
 
         elif (event_msg['event'] == 'deactivation-completed'):
@@ -359,7 +357,8 @@ class BroadcomOnuHandler(object):
 
     def disable(self, device):
         device = self.adapter_agent.get_device(self.device_id)
-        device.admin_state = AdminState.DISABLED
+        device.oper_status = OperStatus.UNKNOWN
+        device.connect_status = ConnectStatus.UNREACHABLE
         self.adapter_agent.update_device(device)
         event_data = dict()
         event_data['serial_number'] = device.serial_number
@@ -370,12 +369,9 @@ class BroadcomOnuHandler(object):
         self.log.info('disabled', device_id=device.id)
 
     def reenable(self, device):
-        # register for proxied messages right away
         self.proxy_address = device.proxy_address
-        self.adapter_agent.register_for_proxied_messages(device.proxy_address)
-        device.admin_state = AdminState.ENABLED
         device.connect_status = ConnectStatus.REACHABLE
-        device.oper_status = OperStatus.ACTIVE
+        device.oper_status = OperStatus.UNKNOWN
         self.adapter_agent.update_device(device)
         event_data = dict()
         event_data['serial_number'] = device.serial_number

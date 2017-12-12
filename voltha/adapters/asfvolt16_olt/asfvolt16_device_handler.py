@@ -847,6 +847,22 @@ class Asfvolt16Handler(OltDeviceHandler):
             # ENABLED and operation state is in Failed or Unkown
             self.log.info('Not-Yet-handled', olt_id=self.olt_id,
                           pon_ni=ind_info['_pon_id'], onu_data=ind_info)
+        elif ind_info['activation_successful'] is False:
+            self.log.info('ONU-is in deactivated state')
+            msg = {'proxy_address': child_device.proxy_address,
+                   'event': 'deactivate-onu', 'event_data': ind_info}
+
+            # Send the event message to the ONU adapter
+            self.adapter_agent.publish_inter_adapter_message(child_device.id,
+                                                             msg)
+        elif ind_info['activation_successful'] is True:
+            self.log.info('ONU-re-activated')
+            msg = {'proxy_address': child_device.proxy_address,
+                   'event': 'activation-completed', 'event_data': ind_info}
+
+            # Send the event message to the ONU adapter
+            self.adapter_agent.publish_inter_adapter_message(child_device.id,
+                                                             msg)
         else:
             self.log.info('Invalid-ONU-event', olt_id=self.olt_id,
                           pon_ni=ind_info['_pon_id'], onu_data=ind_info)
@@ -876,6 +892,7 @@ class Asfvolt16Handler(OltDeviceHandler):
             self.adapter_agent.publish_inter_adapter_message(child_device.id,
                                                              msg)
         else:
+            pon_id = ind_info['_pon_id']
             self.log.info('handle_activated_onu:Not-handled-Yet', olt_id=self.olt_id,
                       pon_ni=pon_id, onu_data=ind_info)
 

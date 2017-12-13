@@ -1532,9 +1532,8 @@ class BroadcomOnuHandler(object):
             yield self.wait_for_response()
 
             if self.vids:
-                    reactor.callLater(5, self.add_cached_vlans)
+                reactor.callLater(5, self.add_cached_vlans)
 
-    @inlineCallbacks
     def add_cached_vlans(self):
         for vid in self.vids:
             self.add_vlan(vid)
@@ -1557,7 +1556,6 @@ class BroadcomOnuHandler(object):
 
     def create_multicast_gemport(self, data):
         self.log.info('Send relevant OMCI message')
-
 
     def delete_logical_port(self, onu_device):
         self.log.info('disabling', device_id=self.device_id)

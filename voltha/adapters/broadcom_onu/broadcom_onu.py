@@ -44,7 +44,7 @@ from voltha.protos.bbf_fiber_tcont_body_pb2 import TcontsConfigData
 from voltha.protos.bbf_fiber_gemport_body_pb2 import GemportsConfigData
 
 from common.frameio.frameio import hexify
-from voltha.extensions.omci.omci import *
+from voltha_omci.omci import *
 
 import time
 

@@ -17,14 +17,14 @@ from scapy.fields import ByteField, PacketField, IntField
 from scapy.fields import ShortField, ConditionalField
 from scapy.packet import Packet
 
-from voltha.extensions.omci.omci_defs import FixedLenField
-from voltha.extensions.omci.omci_messages import OmciCreate, OmciDelete, \
+from voltha_omci.omci.omci_defs import FixedLenField
+from voltha_omci.omci.omci_messages import OmciCreate, OmciDelete, \
     OmciDeleteResponse, OmciSet, OmciSetResponse, OmciGet, OmciGetResponse, \
     OmciGetAllAlarms, OmciGetAllAlarmsResponse, OmciGetAllAlarmsNext, \
     OmciMibResetResponse, OmciMibReset, OmciMibUploadNextResponse, \
     OmciMibUploadNext, OmciMibUploadResponse, OmciMibUpload, \
     OmciGetAllAlarmsNextResponse
-from voltha.extensions.omci.omci_messages import OmciCreateResponse
+from voltha_omci.omci.omci_messages import OmciCreateResponse
 
 
 class OmciFrame(Packet):

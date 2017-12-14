@@ -19,8 +19,8 @@ from scapy.fields import ByteField, StrFixedLenField, ConditionalField, Field
 from scapy.fields import ShortField
 from scapy.packet import Packet
 
-from voltha.extensions.omci.omci_defs import AttributeAccess
-from voltha.extensions.omci.omci_entities import entity_id_to_class_map
+from voltha_omci.omci.omci_defs import AttributeAccess
+from voltha_omci.omci.omci_entities import entity_id_to_class_map
 
 
 log = structlog.get_logger()

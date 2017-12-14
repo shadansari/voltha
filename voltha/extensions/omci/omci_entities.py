@@ -21,9 +21,9 @@ from scapy.fields import ByteField, ShortField, MACField, BitField, IPField
 from scapy.fields import IntField, StrFixedLenField
 from scapy.packet import Packet
 
-from voltha.extensions.omci.omci_defs import OmciUninitializedFieldError, \
+from voltha_omci.omci.omci_defs import OmciUninitializedFieldError, \
     AttributeAccess, OmciNullPointer, EntityOperations
-from voltha.extensions.omci.omci_defs import bitpos_from_mask
+from voltha_omci.omci.omci_defs import bitpos_from_mask
 
 
 class EntityClassAttribute(object):

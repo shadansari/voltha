@@ -30,7 +30,7 @@ from scapy.volatile import RandSInt
 from scapy.layers.ntp import XLEShortField
 
 from voltha.adapters.microsemi_olt.PAS5211_constants import PON_ENABLE, PON_PORT_PON, PON_FALSE, PON_TRUE
-from voltha.extensions.omci.omci_frame import OmciFrame
+from voltha_omci.omci.omci_frame import OmciFrame
 
 """
 PAS5211 Constants

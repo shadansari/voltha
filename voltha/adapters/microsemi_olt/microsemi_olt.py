@@ -27,8 +27,8 @@ from voltha.adapters.microsemi_olt.DeviceManager import DeviceManager
 from voltha.adapters.microsemi_olt.OMCIProxy import OMCIProxy
 from voltha.adapters.microsemi_olt.OltStateMachine import OltStateMachine
 from voltha.adapters.microsemi_olt.PAS5211_comm import PAS5211Communication
-from voltha.extensions.omci.omci_frame import OmciFrame
-from voltha.extensions.omci.omci_messages import OmciMessage
+from voltha_omci.omci.omci_frame import OmciFrame
+from voltha_omci.omci.omci_messages import OmciMessage
 from voltha.protos import third_party
 from voltha.protos.adapter_pb2 import Adapter, AdapterConfig
 from voltha.protos.common_pb2 import LogLevel

@@ -27,7 +27,7 @@ from voltha.adapters.interface import IAdapterInterface
 from voltha.adapters.microsemi_olt.DeviceManager import mac_str_to_tuple
 from voltha.adapters.microsemi_olt.PAS5211 import PAS5211GetOnuAllocs, PAS5211GetOnuAllocsResponse, PAS5211GetSnInfo, \
     PAS5211GetSnInfoResponse, PAS5211GetOnusRange, PAS5211GetOnusRangeResponse
-from voltha.extensions.omci.omci_frame import OmciFrame
+from voltha_omci.omci.omci_frame import OmciFrame
 from voltha.protos import third_party
 from voltha.protos.adapter_pb2 import Adapter
 from voltha.protos.adapter_pb2 import AdapterConfig
@@ -37,7 +37,7 @@ from voltha.protos.health_pb2 import HealthStatus
 from voltha.protos.logical_device_pb2 import LogicalPort
 from voltha.protos.openflow_13_pb2 import OFPPF_1GB_FD, OFPPF_FIBER, ofp_port, OFPPS_LIVE
 
-from voltha.extensions.omci.omci_messages import OmciGet, OmciGetResponse, OmciCreate, OmciMibResetResponse, OmciSet, \
+from voltha_omci.omci.omci_messages import OmciGet, OmciGetResponse, OmciCreate, OmciMibResetResponse, OmciSet, \
     OmciSetResponse, OmciCreateResponse, OmciMibReset
 
 _ = third_party

@@ -1,6 +1,6 @@
 from unittest import TestCase, main
 
-from voltha.extensions.omci.omci import *
+from voltha_omci.omci.omci import *
 
 
 def hexify(buffer):

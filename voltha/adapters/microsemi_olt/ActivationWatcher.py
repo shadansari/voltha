@@ -32,9 +32,9 @@ from voltha.adapters.microsemi_olt.PAS5211_constants import PON_ACTIVATION_AUTH_
     PYTHAGORAS_UPDATE_AID_SLA, SLA_be_bw_gros, SLA_gr_bw_gros, SLA_gr_bw_fine, SLA_be_bw_fine, PYTHAGORAS_DBA_DATA_COS, \
     PYTHAGORAS_DBA_STATUS_REPORT_NSR, PYTHAGORAS_SET_SLA_RESP_SIZE, PON_PORT_TYPE_GEM, PON_PORT_DESTINATION_CNI0, \
     PON_FALSE, PON_DISABLE
-from voltha.extensions.omci.omci_entities import CircuitPack
-from voltha.extensions.omci.omci_frame import OmciFrame
-from voltha.extensions.omci.omci_messages import OmciGet, OmciGetResponse
+from voltha_omci.omci.omci_entities import CircuitPack
+from voltha_omci.omci.omci_frame import OmciFrame
+from voltha_omci.omci.omci_messages import OmciGet, OmciGetResponse
 
 log = structlog.get_logger()
 _verbose = False

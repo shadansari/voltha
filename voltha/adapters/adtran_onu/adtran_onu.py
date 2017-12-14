@@ -33,7 +33,7 @@ from voltha.protos.logical_device_pb2 import LogicalPort
 from voltha.protos.openflow_13_pb2 import OFPPS_LIVE, OFPPF_FIBER, OFPPF_10GB_FD
 from voltha.protos.openflow_13_pb2 import ofp_port
 from common.frameio.frameio import hexify
-from voltha.extensions.omci.omci import *
+from voltha_omci.omci.omci import *
 from voltha.protos.bbf_fiber_base_pb2 import OntaniConfig, VOntaniConfig, VEnetConfig
 from voltha.adapters.adtran_olt.tcont import TCont, TrafficDescriptor, BestEffort
 from voltha.adapters.adtran_olt.gem_port import GemPort

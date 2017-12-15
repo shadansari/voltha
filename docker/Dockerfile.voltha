@@ -28,6 +28,13 @@ COPY common /voltha/common
 COPY voltha /voltha/voltha
 COPY pki /voltha/pki
 
+COPY requirements-voltha.txt /tmp/requirements-voltha.txt
+
 # Exposing process and default entry point
 # EXPOSE 8000
 CMD ["python", "voltha/voltha/main.py"]
+
+# Install dependencies
+RUN apt-get install -y git && \
+    pip install -r /tmp/requirements-voltha.txt && \
+    apt-get purge -y git

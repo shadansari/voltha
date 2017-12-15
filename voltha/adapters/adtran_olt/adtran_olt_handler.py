@@ -24,7 +24,7 @@ from gem_port import GemPort
 from codec.olt_state import OltState
 from flow.flow_entry import FlowEntry
 from net.adtran_zmq import AdtranZmqClient
-from voltha_omci.omci.omci import *
+from voltha_omci.omci import *
 from voltha.protos.common_pb2 import AdminState, OperStatus
 from voltha.protos.device_pb2 import Device
 from voltha.protos.bbf_fiber_base_pb2 import \

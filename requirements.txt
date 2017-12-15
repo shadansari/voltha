@@ -59,5 +59,3 @@ git+https://github.com/cablehead/python-consul.git
 
 # Twisted Python kafka client
 git+https://github.com/ciena/afkak.git
-
-git+https://gerrit.opencord.org/voltha-omci

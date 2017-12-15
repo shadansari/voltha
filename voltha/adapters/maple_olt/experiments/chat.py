@@ -11,7 +11,7 @@ from twisted.python import util
 
 from common.frameio.frameio import hexify
 from common.utils.asleep import asleep
-from voltha_omci.omci.omci import *
+from voltha_omci.omci import *
 
 
 class OmciProxy(pb.Root):

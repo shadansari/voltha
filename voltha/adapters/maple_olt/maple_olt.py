@@ -53,7 +53,7 @@ from voltha.protos.openflow_13_pb2 import OFPPS_LIVE, OFPPF_FIBER, \
     OFPC_FLOW_STATS, OFPP_CONTROLLER, OFPXMC_OPENFLOW_BASIC, \
     ofp_switch_features, ofp_desc, ofp_port
 from voltha.registry import registry
-from voltha_omci.omci.omci import *
+from voltha_omci.omci import *
 
 _ = third_party
 log = structlog.get_logger()

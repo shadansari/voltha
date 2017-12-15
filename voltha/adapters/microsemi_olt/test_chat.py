@@ -2,7 +2,7 @@ import unittest
 from unittest import TestCase, main
 
 from voltha.adapters.microsemi.chat import *
-from voltha_omci.omci.omci import OmciFrame, OmciGet, \
+from voltha_omci.omci import OmciFrame, OmciGet, \
     OmciGetResponse
 
 @unittest.SkipTest

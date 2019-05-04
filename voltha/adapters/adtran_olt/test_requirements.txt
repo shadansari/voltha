@@ -1,5 +1,0 @@
--r ../../../requirements.txt
-pytest < 4.1
-pytest-cov
-pytest-twisted
-virtualenv

@@ -55,7 +55,6 @@ DOCKER_BUILD_ARGS = \
 	--build-arg REPOSITORY=$(REPOSITORY) \
 	$(DOCKER_PROXY_ARGS) $(DOCKER_CACHE_ARG) \
 	 --rm --force-rm \
-	 --no-cache \
 	$(DOCKER_BUILD_EXTRA_ARGS)
 
 VENVDIR := venv-$(shell uname -s | tr '[:upper:]' '[:lower:]')
@@ -236,7 +235,7 @@ jenkins-containers: base voltha ofagent netconf consul cli envoy fluentd unum j2
 
 prod-containers: base voltha ofagent netconf shovel onos dashd cli grafana consul tools envoy fluentd unum j2
 
-containers: base voltha ofagent netconf shovel onos tester config-push dashd cli portainer grafana nginx consul tools envoy fluentd unum ponsim j2 alarm-generator test_runner
+containers: base voltha ofagent netconf shovel onos tester config-push dashd cli portainer grafana nginx consul tools fluentd unum j2
 
 base:
 	docker build $(DOCKER_BUILD_ARGS) -t ${REGISTRY}${REPOSITORY}voltha-base:${TAG} -f docker/Dockerfile.base .

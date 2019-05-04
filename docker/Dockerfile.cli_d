@@ -30,7 +30,6 @@ COPY cli /cli/cli
 COPY voltha /cli/voltha
 COPY --from=protos /protos/voltha /cli/voltha/protos
 COPY --from=protos /protos/google/api /cli/voltha/protos/third_party/google/api
-COPY --from=protos /protos/asfvolt16_olt /cli/voltha/adapters/asfvolt16_olt/protos
 RUN useradd -b /home -d /home/voltha voltha -s /bin/bash
 RUN mkdir /home/voltha
 RUN chown voltha.voltha /home/voltha

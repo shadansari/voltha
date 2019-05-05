@@ -1,0 +1,91 @@
+//
+// Copyright 2017 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
+syntax = "proto3";
+
+option go_package = "github.com/opencord/voltha/protos/go/bal";
+
+import "bal_model_ids.proto";
+import "bal_model_types.proto";
+import "bal.proto";
+
+message BalIndications{
+   BalObjId     objType = 1; //type of object for which the indications have been received
+   uint32       sub_group = 26; //Its a new parameter introduced by broadcom to indicate
+                                //type of an indication within the object Type.
+   oneof u {
+         BalAccessTerminalOperStatusChange access_term_ind_op_state  = 2;  // Access Terminal Operational State Change
+         BalAccessTerminalProcessingError access_term_proc_err       = 3;  // Access Terminal - general processing error
+         BalFlowOperStatusChange flow_op_state                       = 4;  // Flow Operational State Change
+         BalFlowProcessingError flow_proc_err                        = 5;  // Flow - general processing error
+         BalInterfaceLos interface_los                               = 6;  // OLT alarms
+         BalInterfaceOperStatusChange interface_op_state             = 7;  // Interface Operational State Change
+         BalPacketBearerChannelRx  pktData                           = 8; // packet data
+         BalPacketIeeeOamChannelRx balOamResp                        = 9; // PLOAM response
+         BalPacketItuOmciChannelRx balOmciResp                       = 10; // OMCI response
+         BalSubscriberTerminalDgi terminal_dgi                       = 11; // Subscriber dgi
+         BalSubscriberTerminalDowi terminal_dowi                     = 12; // Subscriber dowi
+         BalSubscriberTerminalLooci terminal_looci                   = 13; // Subscriber dowi
+         BalSubscriberTerminalOperStatusChange terminal_op_state     = 14;  // Subscriber Terminal Operational State Change
+         BalSubscriberTerminalProcessingError terminal_proc_err      = 15;  // Subscriber Terminal Processing Error
+         BalSubscriberTerminalSdi terminal_sdi                       = 16; // Subscriber Sdi
+         BalSubscriberTerminalSfi terminal_sfi                       = 17; // Subscriber Sfi
+         BalSubscriberTerminalSubTermActFail terminal_sub_term_act_fail = 18; // Subscriber Termial act Fail
+         BalSubscriberTerminalSubTermAlarm terminal_alarm            = 19; // Subscriber alarm
+         BalSubscriberTerminalSubTermDisc terminal_disc              = 20; // Subscriber discovery
+         BalSubscriberTerminalSufi terminal_sufi                     = 21; // Subscriber Sufi
+         BalSubscriberTerminalTiwi terminal_tiwi                     = 22; // Subscriber Tiwi
+         BalTmSchedOperStatusChange tm_sched_oper_stats_change       = 23; // TmScheduler Oper Status Change
+	/* We are not supporting BalSysChannelProfileInd as of now. */
+         //BalSysChannelProfileInd bal_profile_ind                     = 24; // Sys Channel Profile Indication
+      }
+      string device_id                                               = 25; //Deviced Id
+      uint32 ind_present                                             = 27;
+}
+
+service BalInd {
+
+      //Handling of bal indications from the device
+      rpc BalAccTermOperStsCngInd(BalIndications) returns(BalErr) {}
+      rpc BalAccTermProcErr(BalIndications) returns(BalErr) {}
+      rpc BalFlowOperStsCng(BalIndications) returns(BalErr) {}
+      rpc BalFlowProcErr(BalIndications) returns(BalErr) {}
+      rpc BalIfaceLos(BalIndications) returns(BalErr) {}
+      rpc BalIfaceOperStsCng(BalIndications) returns(BalErr) {}
+      rpc BalPktBearerChannelRxInd(BalIndications) returns(BalErr) {}
+      rpc BalPktIeeeOamChannelRxInd(BalIndications) returns(BalErr) {}
+      rpc BalPktOmciChannelRxInd(BalIndications) returns(BalErr) {}
+      rpc BalSubsTermDgiInd(BalIndications) returns(BalErr) {}
+      rpc BalSubsTermDowiInd(BalIndications) returns(BalErr) {}
+      rpc BalSubsTermLoociInd(BalIndications) returns(BalErr) {}
+      rpc BalSubsTermOperStsCng(BalIndications) returns(BalErr) {}
+      rpc BalSubsTermProcErr(BalIndications) returns(BalErr) {}
+      rpc BalSubsTermSdiInd(BalIndications) returns(BalErr) {}
+      rpc BalSubsTermSfiInd(BalIndications) returns(BalErr) {}
+      rpc BalSubTermActFailInd(BalIndications) returns(BalErr) {}
+      rpc BalSubsTermAlarmInd(BalIndications) returns(BalErr) {}
+      rpc BalSubsTermDiscoveryInd(BalIndications) returns(BalErr) {}
+      rpc BalSubsTermSufiInd(BalIndications) returns(BalErr) {}
+      rpc BalSubsTermTiwiInd(BalIndications) returns(BalErr) {}
+      rpc BalTmSchedOperStatsChange(BalIndications) returns(BalErr) {}
+      /* We are not supporting BalSysProfileInd as of now. */
+      //rpc BalSysProfileInd(BalIndications) returns(BalErr) {}
+}
+
+service BalGetInd {
+      //Get bal indications from the device
+      rpc BalGetIndFromDevice(BalDefault) returns(BalIndications) {}
+}

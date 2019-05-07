@@ -44,7 +44,7 @@ defs = dict(
     # config=os.environ.get('CONFIG', './cli.yml'),
     consul=os.environ.get('CONSUL', 'localhost:8500'),
     voltha_grpc_endpoint=os.environ.get('VOLTHA_GRPC_ENDPOINT',
-                                        'localhost:50055'),
+                                        'localhost:50056'),
     voltha_sim_rest_endpoint=os.environ.get('VOLTHA_SIM_REST_ENDPOINT',
                                             'localhost:18880'),
     global_request=os.environ.get('GLOBAL_REQUEST', False)
@@ -878,6 +878,7 @@ if __name__ == '__main__':
         port = int(args.consul.split(':')[1].strip())
         consul = Consul(host=host, port=port)
 
+        '''
         _, services = consul.catalog.service('voltha-grpc')
         if not services:
             print('No voltha-grpc service registered in consul; exiting')
@@ -891,6 +892,10 @@ if __name__ == '__main__':
             sys.exit(1)
         args.sim_rest_endpoint = '{}:{}'.format(services[0]['ServiceAddress'],
                                                 services[0]['ServicePort'])
+        '''
+
+        args.grpc_endpoint = '{}:{}'.format('localhost', 50556)
+        args.sim_rest_endpoint = '{}:{}'.format('localhost', 18880)
 
     c = VolthaCli(args.grpc_endpoint, args.sim_rest_endpoint,
                   args.global_request)

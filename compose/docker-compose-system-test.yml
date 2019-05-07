@@ -14,32 +14,6 @@
 version: '2'
 services:
   #
-  # Single-node zookeeper service
-  #
-  zookeeper:
-    image: "${REGISTRY}wurstmeister/zookeeper:latest"
-    ports:
-    - 2181
-    environment:
-      SERVICE_2181_NAME: "zookeeper"
-  #
-  # Single-node kafka service
-  #
-  kafka:
-    image: "${REGISTRY}wurstmeister/kafka:latest"
-    ports:
-     - 9092
-    environment:
-      KAFKA_ADVERTISED_HOST_NAME: ${DOCKER_HOST_IP}
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
-      KAFKA_HEAP_OPTS: "-Xmx256M -Xms128M"
-      SERVICE_9092_NAME: "kafka"
-    depends_on:
-    - vconsul
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-  #
   # Single-node consul agent
   #
   vconsul:
@@ -73,56 +47,6 @@ services:
     - "/var/run/docker.sock:/tmp/docker.sock"
 
   #
-  # Fluentd log server
-  #
-  fluentd:
-    image: "${REGISTRY}fluent/fluentd:v0.12.42"
-    ports:
-    - "24224:24224"
-    volumes:
-    - "/tmp/fluentd:/fluentd/log"
-    environment:
-      SERVICE_24224_NAME: "fluentd-intake"
-
-  #
-  # Graphite-Grafana-statsd service instance
-  # (demo place-holder for external KPI system)
-  #
-  grafana:
-    image: "${REGISTRY}${REPOSITORY}voltha-grafana${TAG}"
-    ports:
-    - "8883:80"
-    - "2003:2003"
-    - "2004:2004"
-    - "8126:8126"
-    - "8125:8125/udp"
-    environment:
-      SERVICE_80_NAME:   "grafana-web-ui"
-      SERVICE_2003_NAME: "carbon-plain-text-intake"
-      SERVICE_2004_NAME: "carbon-pickle-intake"
-      SERVICE_8126_NAME: "statsd-tcp-intake"
-      SERVICE_8125_NAME: "statsd-udp-intake"
-      GR_SERVER_ROOT_URL: "http://localhost:80/grafana/"
-
-  #
-  # Shovel (Kafka-graphite-gateway)
-  #
-  shovel:
-    image: "${REGISTRY}${REPOSITORY}voltha-shovel${TAG}"
-    command: [
-      "/shovel/shovel/main.py",
-      "--kafka=@kafka",
-      "--consul=${DOCKER_HOST_IP}:8500",
-      "--topic=voltha.kpis",
-      "--host=${DOCKER_HOST_IP}"
-    ]
-    depends_on:
-    - vconsul
-    - kafka
-    - grafana
-    restart: unless-stopped
-
-  #
   # Voltha server instance(s)
   #
   voltha:
@@ -132,17 +56,12 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-#      Use the fluentd driver to push logs to fluentd instead
-#      driver: "fluentd"
-#      options:
-#        fluentd-address: ${DOCKER_HOST_IP}:24224
     command: [
       "/voltha/voltha/main.py",
       "-v",
       "--consul=${DOCKER_HOST_IP}:8500",
       "--rest-port=8880",
       "--grpc-port=50556",
-      "--kafka=@kafka",
       "--instance-id-is-container-name",
       "--interface=eth1",
       "--backend=consul",
@@ -228,10 +147,6 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-#      Use the fluentd driver to push logs to fluentd instead
-#      driver: "fluentd"
-#      options:
-#        fluentd-address: ${DOCKER_HOST_IP}:24224
     command: [
       "/ofagent/ofagent/main.py",
       "-v",
@@ -249,92 +164,6 @@ services:
     volumes:
     - "/var/run/docker.sock:/tmp/docker.sock"
     restart: unless-stopped
-
-  #
-  # Netconf server instance(s)
-  #
-  netconf:
-    image: "${REGISTRY}${REPOSITORY}voltha-netconf${TAG}"
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-#      Use the fluentd driver to push logs to fluentd instead
-#      driver: "fluentd"
-#      options:
-#        fluentd-address: ${DOCKER_HOST_IP}:24224
-    privileged: true
-    command: [
-      "/netconf/netconf/main.py",
-      "-v",
-      "--consul=${DOCKER_HOST_IP}:8500",
-      "--grpc-endpoint=@voltha-grpc",
-      "--instance-id-is-container-name",
-      "-v"
-    ]
-    ports:
-    - "830:1830"
-    depends_on:
-    - vconsul
-    - voltha
-    links:
-    - vconsul
-    environment:
-      SERVICE_1830_NAME: "netconf-server"
-    volumes:
-    - "/var/run/docker.sock:/tmp/docker.sock"
-
-  #
-  # Dashboard daemon
-  #
-  dashd:
-    image: "${REGISTRY}${REPOSITORY}voltha-dashd${TAG}"
-    command: [
-      "/dashd/dashd/main.py",
-      "--kafka=@kafka",
-      "--consul=${DOCKER_HOST_IP}:8500",
-      "--grafana_url=http://admin:admin@${DOCKER_HOST_IP}:8883/api",
-      "--topic=voltha.kpis",
-      "--docker_host=${DOCKER_HOST_IP}"
-    ]
-    depends_on:
-    - vconsul
-    - kafka
-    - grafana
-    restart: unless-stopped
-
-  #
-  # Nginx service consolidation
-  #
-  nginx:
-    image: "${REGISTRY}${REPOSITORY}voltha-nginx${TAG}"
-    ports:
-    - "80:80"
-    environment:
-      CONSUL_ADDR: "${DOCKER_HOST_IP}:8500"
-    command: [
-      "/nginx_config/start_service.sh"
-    ]
-    depends_on:
-    - vconsul
-    - grafana
-    - portainer
-    restart: unless-stopped
-
-  #
-  # Docker ui
-  #
-  portainer:
-    image: "${REGISTRY}${REPOSITORY}voltha-portainer${TAG}"
-    ports:
-    - "9000:9000"
-    environment:
-      CONSUL_ADDR: "${DOCKER_HOST_IP}:8500"
-    restart: unless-stopped
-    entrypoint: ["/portainer", "--logo", "/docker/images/logo_alt.png"]
-    volumes:
-    - "/var/run/docker.sock:/var/run/docker.sock"
 
 networks:
   default:

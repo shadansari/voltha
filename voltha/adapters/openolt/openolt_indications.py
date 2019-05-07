@@ -79,16 +79,16 @@ class OpenoltIndications(object):
             reactor.callFromThread(self.device.onu_indication, ind.onu_ind)
         elif ind.HasField('omci_ind'):
             reactor.callFromThread(self.device.omci_indication, ind.omci_ind)
-        elif ind.HasField('port_stats'):
-            reactor.callFromThread(
-                self.device.stats_mgr.port_statistics_indication,
-                ind.port_stats)
-        elif ind.HasField('flow_stats'):
-            reactor.callFromThread(
-                self.device.stats_mgr.flow_statistics_indication,
-                ind.flow_stats)
-        elif ind.HasField('alarm_ind'):
-            reactor.callFromThread(
-                self.device.alarm_mgr.process_alarms, ind.alarm_ind)
+        # elif ind.HasField('port_stats'):
+        #     reactor.callFromThread(
+        #         self.device.stats_mgr.port_statistics_indication,
+        #         ind.port_stats)
+        # elif ind.HasField('flow_stats'):
+        #     reactor.callFromThread(
+        #         self.device.stats_mgr.flow_statistics_indication,
+        #         ind.flow_stats)
+        # elif ind.HasField('alarm_ind'):
+        #    reactor.callFromThread(
+        #         self.device.alarm_mgr.process_alarms, ind.alarm_ind)
         else:
             self.log.warn('unknown indication type')

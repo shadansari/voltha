@@ -40,8 +40,6 @@ from voltha.core.config.config_backend import EtcdStore
 from voltha.protos import third_party
 from voltha.protos.common_pb2 import OperStatus, ConnectStatus, AdminState
 from voltha.protos.openflow_13_pb2 import OFPXMC_OPENFLOW_BASIC, ofp_port
-from voltha.protos.bbf_fiber_tcont_body_pb2 import TcontsConfigData
-from voltha.protos.bbf_fiber_gemport_body_pb2 import GemportsConfigData
 from voltha.extensions.omci.onu_configuration import OMCCVersion
 from voltha.extensions.omci.onu_device_entry import OnuDeviceEvents, \
     OnuDeviceEntry, IN_SYNC_KEY
@@ -924,16 +922,6 @@ class BrcmOpenomciOnuHandler(object):
         self.adapter_agent.update_device(onu_device)
 
         # TODO: im sure there is more to do here
-
-    # Not currently called.  Would be called presumably from the olt handler
-    def remove_gemport(self, data):
-        self.log.debug('remove-gemport', data=data)
-        gem_port = GemportsConfigData()
-        gem_port.CopyFrom(data)
-        device = self.adapter_agent.get_device(self.device_id)
-        if device.connect_status != ConnectStatus.REACHABLE:
-            self.log.error('device-unreachable')
-            return
 
     # Not currently called.  Would be called presumably from the olt handler
     def remove_tcont(self, tcont_data, traffic_descriptor_data):

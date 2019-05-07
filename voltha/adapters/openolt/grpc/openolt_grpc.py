@@ -85,7 +85,7 @@ if __name__ == '__main__':
     broker = sys.argv[1]
     host = sys.argv[2]
 
-    log = setup_logging(yaml.load(open('./logconfig.yml', 'r')),
+    log = setup_logging(yaml.load(open('voltha/adapters/openolt/grpc/logconfig.yml', 'r')),
                         host,
                         verbosity_adjust=0,
                         cache_on_use=True)

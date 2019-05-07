@@ -25,7 +25,6 @@ import os
 
 import structlog
 from twisted.internet.defer import inlineCallbacks, returnValue
-from zope.interface import implementer
 from zope.interface.verify import verifyClass
 
 from voltha.adapters.interface import IAdapterInterface
@@ -39,7 +38,6 @@ log = structlog.get_logger()
 mydir = os.path.abspath(os.path.dirname(__file__))
 
 
-@implementer(IComponent)
 class AdapterLoader(object):
 
     def __init__(self, config):

@@ -22,23 +22,19 @@ from Queue import Queue
 
 import structlog
 from twisted.internet.defer import inlineCallbacks, returnValue
-from zope.interface import implementer
 
 from voltha.core.alarm_filter_agent import AlarmFilterAgent
 from voltha.core.config.config_proxy import CallbackType
 from voltha.core.device_agent import DeviceAgent
 from voltha.core.dispatcher import Dispatcher
-from voltha.core.global_handler import GlobalHandler
 from voltha.core.local_handler import LocalHandler
 from voltha.core.logical_device_agent import LogicalDeviceAgent
 from voltha.protos.voltha_pb2 import \
     Device, LogicalDevice, AlarmFilter
-from voltha.registry import IComponent
 
 log = structlog.get_logger()
 
 
-@implementer(IComponent)
 class VolthaCore(object):
     def __init__(self,
                  instance_id,
@@ -53,11 +49,6 @@ class VolthaCore(object):
                                      core_store_id,
                                      grpc_port)
         self.core_store_id = core_store_id
-        self.global_handler = GlobalHandler(
-            dispatcher=self.dispatcher,
-            instance_id=instance_id,
-            version=version,
-            log_level=log_level)
         self.local_handler = LocalHandler(
             core=self,
             instance_id=instance_id,
@@ -75,7 +66,6 @@ class VolthaCore(object):
     def start(self, config_backend=None):
         log.debug('starting')
         yield self.dispatcher.start()
-        yield self.global_handler.start()
         yield self.local_handler.start(config_backend=config_backend)
         self.local_root_proxy = self.get_proxy('/')
         self.local_root_proxy.register_callback(
@@ -89,7 +79,6 @@ class VolthaCore(object):
     @inlineCallbacks
     def register_grpc_service(self):
         yield self.local_handler.register_grpc_service()
-        yield self.global_handler.register_grpc_service()
 
     def stop(self):
         log.debug('stopping')

@@ -26,7 +26,6 @@ from twisted.internet.error import DNSLookupError
 from leader import Leader
 from common.utils.asleep import asleep
 from common.utils.message_queue import MessageQueue
-from voltha.registry import IComponent
 from worker import Worker
 from simplejson import dumps
 from common.utils.deferred_utils import DeferredWithTimeout, TimeOutError
@@ -38,7 +37,6 @@ class StaleMembershipEntryException(Exception):
     pass
 
 
-@implementer(IComponent)
 class CoordinatorEtcd(object):
     """
     An app shall instantiate only one Coordinator (singleton).

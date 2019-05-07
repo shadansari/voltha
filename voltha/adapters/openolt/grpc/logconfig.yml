@@ -46,6 +46,6 @@ loggers:
     propagate: False
   '': # root logger
     handlers: [console, localRotatingFile]
-    level: INFO # this can be bumped up/down by -q and -v command line
+    level: DEBUG # this can be bumped up/down by -q and -v command line
                 # options
     propagate: False

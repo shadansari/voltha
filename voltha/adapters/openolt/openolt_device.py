@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 
+import os
 import structlog
 import time
 import subprocess
@@ -180,13 +181,14 @@ class OpenoltDevice(object):
 
     def post_connected(self, event):
         # FIXME - better way that avoids absolute paths?
+	python_path = os.getcwd() + ':' + os.getcwd() + '/voltha/protos/third_party'
+        self.log.debug("spawn grpc subprocess", python_path=python_path)
         self._grpc = subprocess.Popen(
             ['python',
-             'openolt_grpc.py',
+             'voltha/adapters/openolt/grpc/openolt_grpc.py',
              self.broker,
              self.host_and_port],
-            env={'PYTHONPATH': '/voltha:/voltha/voltha/protos/third_party'},
-            cwd='/voltha/voltha/adapters/openolt/grpc',
+            env={'PYTHONPATH':python_path},
         )
 
     def do_state_up(self, event):

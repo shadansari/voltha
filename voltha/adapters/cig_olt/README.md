@@ -1,2 +1,0 @@
-# CIG OLT Device Adapter
-

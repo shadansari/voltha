@@ -25,14 +25,11 @@ from concurrent import futures
 from structlog import get_logger
 import zlib
 
-from zope.interface import implementer
 
 from common.utils.grpc_utils import twisted_async
 from voltha.core.logical_device_agent import LogicalDeviceAgent
 from voltha.protos import voltha_pb2, voltha_pb2_grpc, schema_pb2, schema_pb2_grpc, health_pb2_grpc
 from google.protobuf.empty_pb2 import Empty
-
-from voltha.registry import IComponent
 
 log = get_logger()
 
@@ -191,7 +188,6 @@ class VolthaLogicalLayer(voltha_pb2_grpc.VolthaLogicalLayerServicer):
         self.packet_in_queue.put(packet_in)
 '''
 
-@implementer(IComponent)
 class VolthaGrpcServer(object):
 
     def __init__(self, port=50055):

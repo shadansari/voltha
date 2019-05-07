@@ -28,16 +28,14 @@ import sys
 from simplejson import dumps
 from twisted.internet.defer import Deferred
 from twisted.internet.task import LoopingCall
-from zope.interface import implementer
 
 from common.event_bus import EventBusClient
 from voltha.protos.events_pb2 import KpiEvent2, KpiEventType, MetricInformation, MetricMetaData
-from voltha.registry import IComponent, registry
+from voltha.registry import registry
 
 log = structlog.get_logger()
 
 
-@implementer(IComponent)
 class Diagnostics(object):
 
     def __init__(self, config):

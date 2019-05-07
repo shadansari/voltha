@@ -45,8 +45,7 @@ from voltha.northbound.kafka.kafka_proxy import KafkaProxy
 from voltha.adapters.openolt.openolt_kafka_proxy import OpenoltKafkaProxy
 from voltha.northbound.rest.health_check import init_rest_service
 from voltha.protos.common_pb2 import LogLevel
-from voltha.registry import registry, IComponent
-from common.frameio.frameio import FrameIOManager
+from voltha.registry import registry
 from packaging.version import Version
 
 
@@ -288,7 +287,6 @@ def print_banner(log):
     log.info('(to stop: press Ctrl-C)')
 
 
-@implementer(IComponent)
 class Main(object):
 
     def __init__(self):
@@ -373,6 +371,7 @@ class Main(object):
 
             registry.register('main', self)
 
+            '''
             if self.args.backend == 'consul':
                 yield registry.register(
                     'coordinator',
@@ -403,6 +402,10 @@ class Main(object):
             # Wait until we get a config id before we proceed
             self.core_store_id, store_prefix = \
                 yield registry('coordinator').get_core_store_id_and_prefix()
+            '''
+
+	    self.core_store_id = '1'
+            store_prefix = "service/voltha"
 
             self.log.info('store-id', core_store_id=self.core_store_id)
 
@@ -443,10 +446,12 @@ class Main(object):
 
             init_rest_service(self.args.rest_port)
 
+            '''
             yield registry.register(
                 'frameio',
                 FrameIOManager()
             ).start()
+            '''
 
             yield registry.register(
                 'adapter_loader',

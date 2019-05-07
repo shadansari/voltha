@@ -20,18 +20,15 @@ from structlog import get_logger
 from twisted.internet import reactor
 from twisted.internet.defer import inlineCallbacks, returnValue
 from twisted.internet.threads import deferToThread
-from zope.interface import implementer
 from confluent_kafka import Producer as _kafkaProducer
 from confluent_kafka import Consumer
 
 from common.utils.consulhelpers import get_endpoint_from_consul
 from voltha.northbound.kafka.event_bus_publisher import EventBusPublisher
-from voltha.registry import IComponent
 
 log = get_logger()
 
 
-@implementer(IComponent)
 class KafkaProxy(object):
     """
     This is a singleton proxy kafka class to hide the kafka client details. This

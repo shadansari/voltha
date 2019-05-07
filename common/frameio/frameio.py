@@ -38,9 +38,9 @@ import sys
 
 from scapy.data import ETH_P_ALL
 from twisted.internet import reactor
-from zope.interface import implementer
+#from zope.interface import implementer
 
-from voltha.registry import IComponent
+#from voltha.registry import IComponent
 
 if sys.platform.startswith('linux'):
     from common.frameio.third_party.oftest import afpacket, netutils
@@ -290,7 +290,7 @@ class FrameIOPortProxy(object):
         self.frame_io_port.down()
         return self
 
-
+'''
 @implementer(IComponent)
 class FrameIOManager(Thread):
     """
@@ -435,3 +435,4 @@ class FrameIOManager(Thread):
         log.info('Delete interface')
         del self.ports[iface_name]
         log.info('Interface(port) is deleted')
+'''

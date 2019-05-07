@@ -18,7 +18,6 @@
 from structlog import get_logger
 from simplejson import dumps
 from google.protobuf.json_format import MessageToJson
-from zope.interface import implementer
 from confluent_kafka import Producer
 
 from voltha.registry import registry, IComponent
@@ -26,7 +25,6 @@ from voltha.registry import registry, IComponent
 log = get_logger()
 
 
-@implementer(IComponent)
 class OpenoltKafkaProxy(object):
     """
     This is a singleton proxy kafka class to hide the kafka client details.

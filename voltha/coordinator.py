@@ -23,12 +23,10 @@ from structlog import get_logger
 from twisted.internet import reactor
 from twisted.internet.defer import inlineCallbacks, returnValue, Deferred
 from twisted.internet.error import DNSLookupError
-from zope.interface import implementer
 
 from leader import Leader
 from common.utils.asleep import asleep
 from common.utils.message_queue import MessageQueue
-from voltha.registry import IComponent
 from worker import Worker
 from simplejson import dumps, loads
 from common.utils.deferred_utils import DeferredWithTimeout, TimeOutError
@@ -40,7 +38,6 @@ class StaleMembershipEntryException(Exception):
     pass
 
 
-@implementer(IComponent)
 class Coordinator(object):
     """
     An app shall instantiate only one Coordinator (singleton).

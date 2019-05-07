@@ -51,7 +51,7 @@ class Dispatcher(object):
     def start(self):
         log.debug('starting')
         self.local_handler = self.core.get_local_handler()
-        reactor.callLater(0, self._start_tracking_peers)
+        # reactor.callLater(0, self._start_tracking_peers)
         log.info('started')
         return self
 

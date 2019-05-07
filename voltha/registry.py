@@ -20,10 +20,10 @@ Simple component registry to provide centralized access to any registered
 components.
 """
 from collections import OrderedDict
-from zope.interface import Interface
+# from zope.interface import Interface
 
 
-class IComponent(Interface):
+class IComponent(object):
     """
     A Voltha Component
     """
@@ -49,7 +49,6 @@ class Registry(object):
         self.components = OrderedDict()
 
     def register(self, name, component):
-        assert IComponent.providedBy(component)
         assert name not in self.components
         self.components[name] = component
         return component

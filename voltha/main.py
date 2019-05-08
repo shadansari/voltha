@@ -36,7 +36,6 @@ from common.utils.nethelpers import get_my_primary_interface, \
     get_my_primary_local_ipv4
 from voltha.adapters.loader import AdapterLoader
 from voltha.coordinator import Coordinator
-from voltha.coordinator_etcd import CoordinatorEtcd
 from voltha.core.core import VolthaCore
 from voltha.core.config.config_backend import load_backend
 from voltha.northbound.diagnostics import Diagnostics
@@ -279,11 +278,11 @@ def load_config(args, configname='config'):
 
 
 def print_banner(log):
-    log.info(' _    ______  __  ________  _____ ')
-    log.info('| |  / / __ \/ / /_  __/ / / /   |')
-    log.info('| | / / / / / /   / / / /_/ / /| |')
-    log.info('| |/ / /_/ / /___/ / / __  / ___ |')
-    log.info('|___/\____/_____/_/ /_/ /_/_/  |_|')
+    log.info('		      ____  __                ___ __      ')
+    log.info('	 _   ______  / / /_/ /_  ____ _      / (_) /____  ')
+    log.info('	| | / / __ \/ / __/ __ \/ __ `/_____/ / / __/ _ \ ')
+    log.info('	| |/ / /_/ / / /_/ / / / /_/ /_____/ / / /_/  __/ ')
+    log.info('	|___/\____/_/\__/_/ /_/\__,_/     /_/_/\__/\___/  ')
     log.info('(to stop: press Ctrl-C)')
 
 
@@ -371,39 +370,6 @@ class Main(object):
 
             registry.register('main', self)
 
-            '''
-            if self.args.backend == 'consul':
-                yield registry.register(
-                    'coordinator',
-                    Coordinator(
-                        internal_host_address=self.args.internal_host_address,
-                        external_host_address=self.args.external_host_address,
-                        rest_port=self.args.rest_port,
-                        instance_id=self.instance_id,
-                        config=self.config,
-                        consul=self.args.consul,
-                        container_name_regex=self.args.container_name_regex)
-                ).start()
-            elif self.args.backend == 'etcd':
-                yield registry.register(
-                    'coordinator',
-                    CoordinatorEtcd(
-                        internal_host_address=self.args.internal_host_address,
-                        external_host_address=self.args.external_host_address,
-                        rest_port=self.args.rest_port,
-                        instance_id=self.instance_id,
-                        config=self.config,
-                        etcd=self.args.etcd,
-                        container_name_regex=self.args.container_name_regex)
-                ).start()
-
-            self.log.info('waiting-for-config-assignment')
-
-            # Wait until we get a config id before we proceed
-            self.core_store_id, store_prefix = \
-                yield registry('coordinator').get_core_store_id_and_prefix()
-            '''
-
 	    self.core_store_id = '1'
             store_prefix = "service/voltha"
 
@@ -445,13 +411,6 @@ class Main(object):
                                                 args=self.args))
 
             init_rest_service(self.args.rest_port)
-
-            '''
-            yield registry.register(
-                'frameio',
-                FrameIOManager()
-            ).start()
-            '''
 
             yield registry.register(
                 'adapter_loader',

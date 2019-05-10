@@ -66,7 +66,9 @@ class OpenoltAdapter(object):
         log.info('started', interface=self.interface)
 
     def stop(self):
-        log.info('stopped', interface=self.interface)
+        log.info('stopping openolt devices', interface=self.interface)
+        for _, device in self.devices.iteritems():
+            device.stop()
 
     def adapter_descriptor(self):
         log.debug('get descriptor', interface=self.interface)
@@ -106,7 +108,8 @@ class OpenoltAdapter(object):
             self.num_devices += 1
 
     def reconcile_device(self, device):
-        log.info('reconcile-device', device=device)
+        log.error('reconcile_device not supported', device=device)
+        '''
         kwargs = {
             'adapter_agent': self.adapter_agent,
             'device': device,
@@ -129,6 +132,7 @@ class OpenoltAdapter(object):
             # basic children data structures
             self.adapter_agent.reconcile_child_devices(device.id)
             return device
+        '''
 
     def abandon_device(self, device):
         log.info('abandon-device', device=device)

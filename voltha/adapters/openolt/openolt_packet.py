@@ -47,24 +47,23 @@ class OpenoltPacket(object):
             target=self.packet_in_thread)
         self.packet_in_thread_handle.setDaemon(True)
 
+        self.delete_topics()
+
+    def delete_topics(self):
         self._kadmin.delete_topics([
             'voltha.pktout-{}'.format(
                 self.device.data_model.logical_device_id)])
         self._kadmin.delete_topics(['openolt.pktin-{}'.format(
             self.device.host_and_port.split(':')[0])])
+        self._kadmin.delete_topics(['voltha.pktin'])
 
     def start(self):
         self.packet_out_thread_handle.start()
         self.packet_in_thread_handle.start()
 
     def stop(self):
-        self._kadmin.delete_topics([
-            'voltha.pktout-{}'.format(
-                self.device.data_model.logical_device_id)])
-        self._kadmin.delete_topics(['openolt.pktin-{}'.format(
-            self.device.host_and_port.split(':')[0])])
-
-        # FIXME - kill threads
+        self.log.debug('stopping openolt_packet')
+        self.delete_topics()
 
     def packet_out_thread(self):
         self.log.debug('openolt packet-out thread starting')

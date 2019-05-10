@@ -107,7 +107,6 @@ class OpenoltDevice(object):
         self.alarm_mgr_class = OpenOltDefaults['support_classes']['alarm_mgr']
         self.stats_mgr_class = OpenOltDefaults['support_classes']['stats_mgr']
 
-        is_reconciliation = kwargs.get('reconciliation', False)
         self.host_and_port = kwargs['host_and_port']
         self.extra_args = kwargs['extra_args']
         self.log = structlog.get_logger(ip=self.host_and_port)
@@ -116,9 +115,6 @@ class OpenoltDevice(object):
 
         self.data_model = self.data_model_class(self.device_id, adapter_agent,
                                                 self.platform)
-        if is_reconciliation:
-            self.log.info('reconcile data model')
-            self.data_model.reconcile()
 
         # Initialize the OLT state machine
         self.machine = Machine(model=self, states=OpenoltDevice.states,
@@ -181,14 +177,15 @@ class OpenoltDevice(object):
 
     def post_connected(self, event):
         # FIXME - better way that avoids absolute paths?
-	python_path = os.getcwd() + ':' + os.getcwd() + '/voltha/protos/third_party'
+        python_path = os.getcwd() + ':' \
+            + os.getcwd() + '/voltha/protos/third_party'
         self.log.debug("spawn grpc subprocess", python_path=python_path)
         self._grpc = subprocess.Popen(
             ['python',
              'voltha/adapters/openolt/grpc/openolt_grpc.py',
              self.broker,
              self.host_and_port],
-            env={'PYTHONPATH':python_path},
+            env={'PYTHONPATH': python_path},
         )
 
     def do_state_up(self, event):
@@ -449,3 +446,17 @@ class OpenoltDevice(object):
                       device_info=self.device_info)
 
         self.go_state_connected()
+
+    def delete_topics(self):
+        self._kadmin.delete_topics([
+            'openolt.ind-{}'.format(self.host_and_port.split(':')[0])])
+
+    def stop(self):
+        self.log.info('stopping openolt_device')
+        try:
+            self._packet.stop()
+            self._grpc.terminate()
+            self._indications.stop()
+            self.delete_topics()
+        except Exception as e:
+            self.log.error('error stopping openolt_device', error=e)

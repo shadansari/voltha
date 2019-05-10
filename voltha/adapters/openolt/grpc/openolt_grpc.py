@@ -15,6 +15,7 @@
 #
 
 import sys
+import signal
 import time
 import yaml
 import grpc
@@ -25,6 +26,7 @@ from voltha.registry import registry
 from voltha.adapters.openolt.protos import openolt_pb2_grpc, openolt_pb2
 from voltha.adapters.openolt.openolt_kafka_proxy import OpenoltKafkaProxy, \
     kafka_send_pb
+from voltha.adapters.openolt.openolt_kafka_admin import KAdmin
 
 
 class OpenoltGrpc(object):
@@ -78,14 +80,30 @@ def process_indications(host_and_port):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        sys.stderr.write('Usage: %s <olt hostname or ip>\n\n' % sys.argv[0])
+    def delete_topics():
+        default_topic = 'openolt.ind-{}'.format(host.split(':')[0])
+        pktin_topic = 'openolt.pktin-{}'.format(host.split(':')[0])
+        kadmin.delete_topics([default_topic, pktin_topic])
+
+    def signal_handler(signal, frame):
+        print 'stopping openolt_grpc'
+        delete_topics()
+        sys.exit(0)
+
+    if len(sys.argv) < 3:
+        sys.stderr.write(
+            'Usage: %s <kafka-broker> <olt hostname or ip>\n\n' % sys.argv[0])
         sys.exit(1)
 
     broker = sys.argv[1]
     host = sys.argv[2]
 
-    log = setup_logging(yaml.load(open('voltha/adapters/openolt/grpc/logconfig.yml', 'r')),
+    kadmin = KAdmin(broker)
+
+    delete_topics()
+
+    log = setup_logging(yaml.load(
+        open('voltha/adapters/openolt/grpc/logconfig.yml', 'r')),
                         host,
                         verbosity_adjust=0,
                         cache_on_use=True)
@@ -94,6 +112,8 @@ if __name__ == '__main__':
         'openolt_kafka_proxy',
         OpenoltKafkaProxy(broker)
     ).start()
+
+    signal.signal(signal.SIGINT, signal_handler)
 
     while True:
         process_indications(host)

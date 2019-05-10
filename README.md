@@ -10,3 +10,10 @@ python voltha/main.py -v --consul=localhost:8500 --rest-port=8880 --grpc-port=50
 
 /opt/kafka/bin/kafka-topics.sh --list --bootstrap-server localhost:9092
 /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic openolt.ind-10.90.0.12
+
+## Install Consul
+
+Installing Consul is simple. Follow the instructions [here](https://www.consul.io/docs/install/index.html#precompiled-binaries) to install using pre-compiled binaries.
+
+## Install Confluent Kafka
+

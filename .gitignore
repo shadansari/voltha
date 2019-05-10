@@ -2,6 +2,9 @@
 .gradle
 buildSrc/build
 
+#cscope
+cscope.*
+
 # Python
 *.pyc
 
@@ -79,6 +82,10 @@ netconf/protos/third_party/google
 
 # Vagrant logfile
 *.log
+
+# Voltha logfiles
+voltha.log.*
+openolt_grpc.log.*
 
 # gitbook artifacts
 docs/manuals/user/_book

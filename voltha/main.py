@@ -21,12 +21,14 @@ import argparse
 import arrow
 import os
 import time
+# import signal
+import sys
 
 import yaml
 from simplejson import dumps
 from twisted.internet.defer import inlineCallbacks
 from twisted.internet.task import LoopingCall
-from zope.interface import implementer
+from twisted.internet import reactor
 
 from common.event_bus import EventBusClient
 from common.manhole import Manhole
@@ -35,7 +37,6 @@ from common.utils.dockerhelpers import get_my_containers_name
 from common.utils.nethelpers import get_my_primary_interface, \
     get_my_primary_local_ipv4
 from voltha.adapters.loader import AdapterLoader
-from voltha.coordinator import Coordinator
 from voltha.core.core import VolthaCore
 from voltha.core.config.config_backend import load_backend
 from voltha.northbound.diagnostics import Diagnostics
@@ -143,7 +144,6 @@ def parse_args():
                         default=defs['grpc_port'],
                         help=_help)
 
-
     _help = ('<hostname> or <ip> at which Voltha is reachable from inside the'
              'cluster (default: %s)' % defs['internal_host_address'])
     parser.add_argument('-H', '--internal-host-address',
@@ -173,13 +173,6 @@ def parse_args():
                         action='store',
                         type=int,
                         default=None,
-                        help=_help)
-
-    _help = 'omit startup banner log lines'
-    parser.add_argument('-n', '--no-banner',
-                        dest='no_banner',
-                        action='store_true',
-                        default=False,
                         help=_help)
 
     _help = 'do not emit periodic heartbeat log messages'
@@ -255,7 +248,8 @@ def parse_args():
     external and internal host as well as interface
     """
     if args.inter_core_subnet:
-        m_ip = get_my_primary_local_ipv4(inter_core_subnet=args.inter_core_subnet)
+        m_ip = get_my_primary_local_ipv4(
+            inter_core_subnet=args.inter_core_subnet)
         args.external_host_address = m_ip
         args.internal_host_address = m_ip
 
@@ -277,15 +271,6 @@ def load_config(args, configname='config'):
     return config
 
 
-def print_banner(log):
-    log.info('		      ____  __                ___ __      ')
-    log.info('	 _   ______  / / /_/ /_  ____ _      / (_) /____  ')
-    log.info('	| | / / __ \/ / __/ __ \/ __ `/_____/ / / __/ _ \ ')
-    log.info('	| |/ / /_/ / / /_/ / / / /_/ /_____/ / / /_/  __/ ')
-    log.info('	|___/\____/_/\__/_/ /_/\__,_/     /_/_/\__/\___/  ')
-    log.info('(to stop: press Ctrl-C)')
-
-
 class Main(object):
 
     def __init__(self):
@@ -305,10 +290,7 @@ class Main(object):
         self.log.info('VOLTHA version is %s' % self.voltha_version)
 
         # configurable variables from voltha.yml file
-        #self.configurable_vars = self.config.get('Constants', {})
-
-        if not args.no_banner:
-            print_banner(self.log)
+        # self.configurable_vars = self.config.get('Constants', {})
 
         # Create a unique instance id using the passed-in instance id and
         # UTC timestamp
@@ -370,7 +352,7 @@ class Main(object):
 
             registry.register('main', self)
 
-	    self.core_store_id = '1'
+            self.core_store_id = '1'
             store_prefix = "service/voltha"
 
             self.log.info('store-id', core_store_id=self.core_store_id)
@@ -401,7 +383,7 @@ class Main(object):
                 'core',
                 VolthaCore(
                     instance_id=self.instance_id,
-                    core_store_id = self.core_store_id,
+                    core_store_id=self.core_store_id,
                     grpc_port=self.args.grpc_port,
                     version=self.voltha_version,
                     log_level=LogLevel.INFO
@@ -446,7 +428,7 @@ class Main(object):
         self.manhole = Manhole(
             port,
             pws=dict(admin='adminpw'),
-            eventbus = EventBusClient(),
+            eventbus=EventBusClient(),
             **registry.components
         )
 
@@ -470,7 +452,6 @@ class Main(object):
             t.join()
 
     def start_reactor(self):
-        from twisted.internet import reactor
         reactor.callWhenRunning(
             lambda: self.log.info('twisted-reactor-started'))
         reactor.addSystemEventTrigger('before', 'shutdown',
@@ -528,4 +509,10 @@ class Main(object):
 
 
 if __name__ == '__main__':
+    def signal_handler(signal, frame):
+        print 'You pressed Ctrl+C!'
+        reactor.stop()
+        sys.exit(0)
+
+    # signal.signal(signal.SIGINT, signal_handler)
     Main().start()

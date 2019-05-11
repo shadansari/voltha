@@ -28,7 +28,6 @@ from voltha.protos.adapter_pb2 import AdapterConfig
 from voltha.protos.common_pb2 import LogLevel
 from voltha.protos.common_pb2 import OperationResp
 from voltha.protos.device_pb2 import DeviceType, DeviceTypes
-from voltha.registry import registry
 
 _ = third_party
 log = structlog.get_logger()
@@ -58,34 +57,32 @@ class OpenoltAdapter(object):
         )
         log.debug('openolt.__init__', adapter_agent=adapter_agent)
         self.devices = dict()  # device_id -> OpenoltDevice()
-        self.interface = registry('main').get_args().interface
         self.logical_device_id_to_root_device_id = dict()
         self.num_devices = 0
 
     def start(self):
-        log.info('started', interface=self.interface)
+        log.info('started')
 
     def stop(self):
-        log.info('stopping openolt devices', interface=self.interface)
+        log.info('stopping openolt')
         for _, device in self.devices.iteritems():
             device.stop()
+        log.info('stopped openolt')
 
     def adapter_descriptor(self):
-        log.debug('get descriptor', interface=self.interface)
+        log.debug('get descriptor')
         return self.descriptor
 
     def device_types(self):
-        log.debug('get device_types', interface=self.interface,
-                  items=self.supported_device_types)
+        log.debug('get device_types', items=self.supported_device_types)
         return DeviceTypes(items=self.supported_device_types)
 
     def health(self):
-        log.debug('get health', interface=self.interface)
+        log.debug('get health')
         raise NotImplementedError()
 
     def change_master_state(self, master):
-        log.debug('change_master_state', interface=self.interface,
-                  master=master)
+        log.debug('change_master_state', master=master)
         raise NotImplementedError()
 
     def adopt_device(self, device):

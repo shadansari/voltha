@@ -33,7 +33,7 @@ defs = dict(
     controller=os.environ.get('CONTROLLER', 'localhost:6653'),
     external_host_address=os.environ.get('EXTERNAL_HOST_ADDRESS',
                                          get_my_primary_local_ipv4()),
-    grpc_endpoint=os.environ.get('GRPC_ENDPOINT', 'localhost:50055'),
+    grpc_endpoint=os.environ.get('GRPC_ENDPOINT', 'localhost:50556'),
     instance_id=os.environ.get('INSTANCE_ID', os.environ.get('HOSTNAME', '1')),
     internal_host_address=os.environ.get('INTERNAL_HOST_ADDRESS',
                                          get_my_primary_local_ipv4()),

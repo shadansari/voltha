@@ -102,12 +102,10 @@ class BrcmOpenomciOnuAdapter(object):
 
     def stop(self):
         log.debug('stopping')
-
-        omci, self._omci_agent = self._omci_agent, None
-        if omci is not None:
+        if self._omci_agent is not None:
             self._omci_agent.stop()
-
-        log.info('stopped')
+            self._omci_agent = None
+        log.debug('stopped')
 
     def adapter_descriptor(self):
         return self.descriptor

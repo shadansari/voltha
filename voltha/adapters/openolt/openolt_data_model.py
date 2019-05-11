@@ -117,7 +117,7 @@ class OpenOltDataModel(object):
                 serial_num=serial_number
             )
         )
-        self.logical_device_id = \
+        logical_device_id = \
             self.adapter_agent.create_logical_device(ld, dpid=dpid).id
 
         self.device.vendor = device_info.vendor
@@ -128,6 +128,8 @@ class OpenOltDataModel(object):
         self.device.serial_number = serial_number
 
         self.adapter_agent.update_device(self.device)
+
+        self.logical_device_id = logical_device_id
 
         self.log.info('created-openolt-logical-device',
                       logical_device_id=self.logical_device_id)

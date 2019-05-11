@@ -15,6 +15,7 @@
 #
 
 import os
+import signal
 import structlog
 import time
 import subprocess
@@ -226,9 +227,15 @@ class OpenoltDevice(object):
                                             intf_oper_indication.oper_state)
 
     def onu_discovery_indication(self, onu_disc_indication):
+
         intf_id = onu_disc_indication.intf_id
         serial_number = onu_disc_indication.serial_number
         serial_number_str = OpenoltUtils.stringify_serial_number(serial_number)
+
+        if self.data_model.logical_device_id is None:
+            self.log.error("ignore onu discovery indication", intf_id=intf_id,
+                           serial_number=serial_number_str)
+            return
 
         self.log.debug("onu discovery indication", intf_id=intf_id,
                        serial_number=serial_number_str)
@@ -455,8 +462,10 @@ class OpenoltDevice(object):
         self.log.info('stopping openolt_device')
         try:
             self._packet.stop()
-            self._grpc.terminate()
+            # self._grpc.terminate()
+            os.kill(self._grpc.pid, signal.SIGTERM)
             self._indications.stop()
             self.delete_topics()
         except Exception as e:
             self.log.error('error stopping openolt_device', error=e)
+        self.log.info('stopped openolt_device')

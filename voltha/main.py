@@ -21,8 +21,6 @@ import argparse
 import arrow
 import os
 import time
-# import signal
-import sys
 
 import yaml
 from simplejson import dumps
@@ -435,7 +433,7 @@ class Main(object):
     @inlineCallbacks
     def shutdown_components(self):
         """Execute before the reactor is shut down"""
-        self.log.info('exiting-on-keyboard-interrupt')
+        self.log.info('stopping voltha')
         for component in reversed(registry.iterate()):
             yield component.stop()
 
@@ -509,10 +507,4 @@ class Main(object):
 
 
 if __name__ == '__main__':
-    def signal_handler(signal, frame):
-        print 'You pressed Ctrl+C!'
-        reactor.stop()
-        sys.exit(0)
-
-    # signal.signal(signal.SIGINT, signal_handler)
     Main().start()

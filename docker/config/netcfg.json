@@ -10,7 +10,7 @@
         "AAA": {
             "radiusSecret": "SECRET",
             "radiusConnectionType" : "socket",
-            "radiusHost" : "freeradius.voltha.svc.cluster.local",
+            "radiusHost" : "172.25.0.100",
             "radiusServerPort": "1812"
         }
     },

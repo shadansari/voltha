@@ -17,3 +17,10 @@ Installing Consul is simple. Follow the instructions [here](https://www.consul.i
 
 ## Install Confluent Kafka
 
+
+# ONOS
+REPOSITORY=voltha/ docker-compose -f compose/docker-compose-auth-test.yml down
+REPOSITORY=voltha/ docker-compose -f compose/docker-compose-auth-test.yml up -d
+
+## Ofagent
+python ofagent/main.py -v --controller=localhost:6653

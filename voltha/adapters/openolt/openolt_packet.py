@@ -64,6 +64,7 @@ class OpenoltPacket(object):
     def stop(self):
         self.log.debug('stopping openolt_packet')
         self.delete_topics()
+        self.log.debug('stopped openolt_packet')
 
     def packet_out_thread(self):
         self.log.debug('openolt packet-out thread starting')
